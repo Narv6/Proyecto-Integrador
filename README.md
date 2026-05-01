@@ -36,7 +36,7 @@ Sistema de gestión académica desarrollado en Python que permite registrar estu
 4. Ejecuta el siguiente comando:
 
 ```bash
-python Proyecto_fianl_o_si__1_.py
+python Proyecto_final
 ```
 
 5. Sigue las instrucciones del menú interactivo.

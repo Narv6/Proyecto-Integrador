@@ -72,6 +72,5 @@ python Proyecto_fianl_o_si__1_.py
 ---
 
 ## Autores
-Juan Diego Narvaez 
-Juan Pablo Quintana
-Proyecto desarrollado como trabajo final del curso.
+- Juan Diego Narvaez
+- Juan Pablo Quintana

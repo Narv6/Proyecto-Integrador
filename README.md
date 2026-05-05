@@ -1,10 +1,10 @@
-# 📚 Sistema de Registro de Estudiantes
+# Sistema de Registro de Estudiantes
 
 Sistema de gestión académica desarrollado en Python que permite registrar estudiantes, administrar sus notas y consultar su rendimiento académico desde la consola.
 
 ---
 
-## 🚀 Funcionalidades
+## Funcionalidades
 
 - **Registrar estudiantes** con nombre, curso y código único
 - **Agregar notas** (entre 0.0 y 5.0) a cada estudiante
@@ -19,7 +19,7 @@ Sistema de gestión académica desarrollado en Python que permite registrar estu
 
 ---
 
-## 💻 Requerimientos del sistema
+## Requerimientos del sistema
 
 | Componente | Mínimo recomendado |
 |---|---|
@@ -33,7 +33,7 @@ Sistema de gestión académica desarrollado en Python que permite registrar estu
 
 ---
 
-## 🛠️ Tecnologías utilizadas
+## Tecnologías utilizadas
 
 - **Lenguaje:** Python 3
 - **Estructura de datos:** Diccionarios
@@ -41,7 +41,7 @@ Sistema de gestión académica desarrollado en Python que permite registrar estu
 
 ---
 
-## ▶️ Cómo ejecutar el programa
+## Cómo ejecutar el programa
 
 1. Asegúrate de tener **Python 3** instalado en tu equipo.
 2. Clona o descarga este repositorio.
@@ -49,14 +49,14 @@ Sistema de gestión académica desarrollado en Python que permite registrar estu
 4. Ejecuta el siguiente comando:
 
 ```bash
-python Proyecto_fianl_o_si__1_.py
+python Proyecto_fianl_o_si_.py
 ```
 
 5. Sigue las instrucciones del menú interactivo.
 
 ---
 
-## 📋 Menú principal
+## Menú principal
 
 ```
 --- Menú principal ---
@@ -75,7 +75,7 @@ python Proyecto_fianl_o_si__1_.py
 
 ---
 
-## ✅ Requerimientos Funcionales
+## Requerimientos Funcionales
 
 | ID | Requerimiento |
 |----|--------------|
@@ -94,7 +94,7 @@ python Proyecto_fianl_o_si__1_.py
 
 ---
 
-## 📌 Consideraciones
+## Consideraciones
 
 - El **código del estudiante** debe ser un número entero único.
 - Las **notas** deben estar en el rango de **0.0 a 5.0**.
@@ -103,6 +103,7 @@ python Proyecto_fianl_o_si__1_.py
 
 ---
 
-## 👨‍💻 Autores
+## Autores
 
-Proyecto desarrollado como trabajo final del curso.
+-Juan Diego Narvaez
+-Juan Pablo Quintana

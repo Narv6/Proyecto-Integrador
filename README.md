@@ -73,24 +73,6 @@ python Proyecto_fianl_o_si_.py
 11. Salir
 ```
 
----
-
-## Requerimientos Funcionales
-
-| ID | Requerimiento |
-|----|--------------|
-| RF-01 | El sistema debe permitir registrar un estudiante con nombre, curso y código numérico único. |
-| RF-02 | El sistema debe rechazar el registro si el código ya existe o si los campos están vacíos. |
-| RF-03 | El sistema debe permitir agregar una o varias notas a un estudiante registrado. |
-| RF-04 | Las notas deben estar en el rango de 0.0 a 5.0; las que estén fuera del rango deben ser rechazadas. |
-| RF-05 | El sistema debe permitir modificar el nombre, curso o una nota específica de un estudiante. |
-| RF-06 | El sistema debe permitir eliminar un estudiante del registro previa confirmación del usuario. |
-| RF-07 | El sistema debe calcular el promedio de notas de un estudiante y mostrar su estado (Aprobado si promedio ≥ 3.0, Reprobado si es menor). |
-| RF-08 | El sistema debe mostrar la lista completa de estudiantes con su código, nombre, curso, notas, promedio y estado. |
-| RF-09 | El sistema debe listar únicamente los estudiantes con promedio inferior a 3.0. |
-| RF-10 | El sistema debe mostrar todos los cursos registrados junto con la cantidad de estudiantes en cada uno. |
-| RF-11 | El sistema debe permitir filtrar y listar los estudiantes pertenecientes a un curso específico. |
-| RF-12 | El sistema debe permitir buscar estudiantes por nombre, mostrando todos los resultados que coincidan parcialmente. |
 
 ---
 

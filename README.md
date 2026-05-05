@@ -24,7 +24,7 @@ Sistema de gestión académica desarrollado en Python que permite registrar estu
 | Componente | Mínimo recomendado |
 |---|---|
 | Sistema operativo | Windows 10 / macOS 10.15 / Linux Ubuntu 20.04 |
-| Python | Versión 3.6 o superior |
+| Python | Versión 3.1 o superior |
 | RAM | 512 MB |
 | Almacenamiento | 10 MB libres |
 | Terminal | CMD, PowerShell, bash o cualquier consola de comandos |

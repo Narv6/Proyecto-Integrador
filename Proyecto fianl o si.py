@@ -418,39 +418,40 @@ def main():
             print("Por favor ingresa un número válido.")
             continue  # Vuelve al inicio del bucle sin ejecutar ninguna operación
 
-        if seleccion == 1:
-            registrar_estudiante()  # Inicia el flujo de captura y validación de datos para un nuevo estudiante
-        elif seleccion == 2:
-            codigo = pedir_codigo()  # Solicita el código antes de llamar a la función para reutilizar la lógica de validación
-            if codigo is not None:  # Solo procede si pedir_codigo() devolvió un entero válido
-                subir_nota(codigo)
-        elif seleccion == 3:
-            codigo = pedir_codigo()  # Reutiliza pedir_codigo() para mantener consistencia en la forma de obtener el identificador
-            if codigo is not None:  # Previene llamar a modificar_estudiante() con un código inválido
-                modificar_estudiante(codigo)
-        elif seleccion == 4:
-            codigo = pedir_codigo()  # El código es necesario para localizar al estudiante que se desea eliminar
-            if codigo is not None:  # Solo invoca la baja si se obtuvo un código numérico válido
-                dar_de_baja(codigo)
-        elif seleccion == 5:
-            codigo = pedir_codigo()  # Requiere identificar al estudiante antes de calcular su promedio
-            if codigo is not None:  # Evita pasar None a obtener_promedio(), lo que causaría un comportamiento inesperado
-                obtener_promedio(codigo)
-        elif seleccion == 6:
-            ver_estudiantes()  # No requiere código porque opera sobre todos los estudiantes del registro
-        elif seleccion == 7:
-            ver_reprobados()  # Filtra internamente sin necesitar input del usuario
-        elif seleccion == 8:
-            ver_cursos()  # Genera el resumen de cursos a partir de los datos actuales del registro
-        elif seleccion == 9:
-            filtrar_por_curso()  # Solicita internamente el nombre del curso a filtrar
-        elif seleccion == 10:
-            buscar_por_nombre()  # Solicita internamente el nombre a buscar y permite coincidencias parciales
-        elif seleccion == 11:
-            print("¡Hasta luego!")
-            break  # Termina el bucle while y finaliza la ejecución del programa
-        else:
-            print("Opción no válida, intenta de nuevo.")  # El número ingresado no corresponde a ninguna de las 11 opciones disponibles
+        match seleccion:  # Evalúa el valor de seleccion y ejecuta el bloque del caso que coincida
+            case 1:
+                registrar_estudiante()  # Inicia el flujo de captura y validación de datos para un nuevo estudiante
+            case 2:
+                codigo = pedir_codigo()  # Solicita el código antes de llamar a la función para reutilizar la lógica de validación
+                if codigo is not None:  # Solo procede si pedir_codigo() devolvió un entero válido
+                    subir_nota(codigo)
+            case 3:
+                codigo = pedir_codigo()  # Reutiliza pedir_codigo() para mantener consistencia en la forma de obtener el identificador
+                if codigo is not None:  # Previene llamar a modificar_estudiante() con un código inválido
+                    modificar_estudiante(codigo)
+            case 4:
+                codigo = pedir_codigo()  # El código es necesario para localizar al estudiante que se desea eliminar
+                if codigo is not None:  # Solo invoca la baja si se obtuvo un código numérico válido
+                    dar_de_baja(codigo)
+            case 5:
+                codigo = pedir_codigo()  # Requiere identificar al estudiante antes de calcular su promedio
+                if codigo is not None:  # Evita pasar None a obtener_promedio(), lo que causaría un comportamiento inesperado
+                    obtener_promedio(codigo)
+            case 6:
+                ver_estudiantes()  # No requiere código porque opera sobre todos los estudiantes del registro
+            case 7:
+                ver_reprobados()  # Filtra internamente sin necesitar input del usuario
+            case 8:
+                ver_cursos()  # Genera el resumen de cursos a partir de los datos actuales del registro
+            case 9:
+                filtrar_por_curso()  # Solicita internamente el nombre del curso a filtrar
+            case 10:
+                buscar_por_nombre()  # Solicita internamente el nombre a buscar y permite coincidencias parciales
+            case 11:
+                print("¡Hasta luego!")
+                break  # Termina el bucle while y finaliza la ejecución del programa
+            case _:
+                print("Opción no válida, intenta de nuevo.")  # El guion bajo actúa como comodín que captura cualquier valor no contemplado en los casos anteriores
 
 if __name__ == "__main__":
     main()  # Punto de entrada: garantiza que main() solo se ejecute cuando el archivo se corre directamente, no al importarlo

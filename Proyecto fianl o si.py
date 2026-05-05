@@ -59,7 +59,7 @@ def subir_nota(codigo):
         return
 
     try:
-        cantidad = int(input(f"¿Cuántas notas deseas agregar para {registro[codigo]['nombre']}? "))  # Muestra el nombre para confirmar que se está modificando al estudiante correcto
+        cantidad = int(input(f"¿Cuántas notas deseas agregar para {registro[codigo]['nombre']}?: "))  # Muestra el nombre para confirmar que se está modificando al estudiante correcto
     except ValueError:  # Previene errores si el usuario escribe algo que no sea un número entero
         print("Ingresa un número válido.")
         return
@@ -110,7 +110,7 @@ def modificar_estudiante(codigo):
     print("3. Modificar una nota")
 
     try:
-        opcion = int(input("¿Qué deseas modificar? "))  # Captura la elección del submenú de modificación
+        opcion = int(input("¿Qué deseas modificar?: "))  # Captura la elección del submenú de modificación
     except ValueError:  # Evita que una entrada no numérica rompa el flujo del programa
         print("Opción inválida.")
         return

@@ -38,7 +38,7 @@ Sistema de gestión académica desarrollado en Python que permite registrar estu
 ## Tecnologías utilizadas
 
 - **Lenguaje:** Python 3
-- **Estructuras de datos:** Diccionarios, listas y tuplas
+- **Estructuras de datos:** Diccionarios y listas
 - **Interfaz:** Línea de comandos (consola)
 
 ---

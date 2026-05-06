@@ -43,13 +43,14 @@ def registrar_estudiante():
 
 def subir_nota(codigo):
     """
-    Agrega una o varias notas a un estudiante existente.
+    Agrega una o varias notas con porcentaje a un estudiante existente.
 
     Args:
         codigo (int): Código del estudiante.
 
     Pregunta cuántas notas se desean ingresar y las valida una a una.
-    Cada nota debe estar entre 0 y 5.
+    Cada nota debe estar entre 0 y 5, y cada porcentaje entre 1 y 100.
+    La suma de todos los porcentajes del estudiante no puede superar 100%.
 
     Returns:
         None
@@ -68,22 +69,60 @@ def subir_nota(codigo):
         print("La cantidad debe ser mayor a 0.")
         return
 
+    # Calcula el porcentaje ya usado por notas anteriores del estudiante
+    porcentaje_usado = sum(n["porcentaje"] for n in registro[codigo]["notas"])
+    porcentaje_disponible = 100 - porcentaje_usado  # Lo que queda disponible para nuevas notas
+
+    if porcentaje_disponible <= 0:
+        print("Este estudiante ya tiene el 100% de sus notas registradas.")
+        return
+
+    print(f"Porcentaje disponible: {porcentaje_disponible}%")
+
     agregadas = 0  # Contador para reportar al final cuántas notas fueron válidas y realmente guardadas
 
     for i in range(cantidad):  # Itera exactamente la cantidad de veces que el usuario indicó
         try:
             nota = float(input(f"  Nota {i + 1}: "))  # Se usa float para permitir notas decimales como 3.7 o 4.5
         except ValueError:  # Si el usuario escribe texto en lugar de un número, se omite esa nota y se continúa
-            print(f"Nota {i + 1} inválida, se omite.")
-            continue  # Salta al siguiente ciclo sin interrumpir el proceso completo
+            print(f"  Nota {i + 1} inválida, se omite.")
+            continue
 
-        if 0 <= nota <= 5:  # Valida que la nota esté dentro del rango académico permitido (0 a 5)
-            registro[codigo]["notas"].append(nota)  # Añade la nota al historial de calificaciones del estudiante
-            agregadas += 1  # Solo cuenta notas que pasaron la validación de rango
-        else:
-            print(f"Nota {i + 1} fuera de rango (0-5), se omite.")  # Informa que esa nota específica fue descartada por ser inválida
+        if not (0 <= nota <= 5):  # Valida que la nota esté dentro del rango académico permitido (0 a 5)
+            print(f"  Nota {i + 1} fuera de rango (0-5), se omite.")
+            continue
 
-    print(f"{agregadas} nota(s) registrada(s) con éxito.")  # Resume cuántas notas fueron efectivamente guardadas de las que se intentaron ingresar
+        try:
+            porcentaje = float(input(f"  Porcentaje para nota {i + 1} (disponible: {porcentaje_disponible}%): "))
+        except ValueError:
+            print(f"  Porcentaje inválido, se omite la nota {i + 1}.")
+            continue
+
+        if not (0 < porcentaje <= porcentaje_disponible):  # Verifica que el porcentaje sea positivo y no supere lo disponible
+            print(f"  Porcentaje fuera de rango. Debe estar entre 1 y {porcentaje_disponible}%, se omite.")
+            continue
+
+        registro[codigo]["notas"].append({"valor": nota, "porcentaje": porcentaje})  # Guarda la nota como dict con valor y porcentaje
+        porcentaje_disponible -= porcentaje  # Descuenta el porcentaje usado de lo que queda disponible
+        agregadas += 1
+        print(f"  ✓ Nota registrada. Porcentaje restante: {porcentaje_disponible}%")
+
+    print(f"{agregadas} nota(s) registrada(s) con éxito.")
+
+
+def calcular_promedio_ponderado(notas):
+    """
+    Calcula el promedio ponderado de una lista de notas con porcentaje.
+
+    Args:
+        notas (list): Lista de dicts con 'valor' y 'porcentaje'.
+
+    Returns:
+        float | None: Promedio ponderado o None si no hay notas.
+    """
+    if not notas:
+        return None
+    return sum(n["valor"] * (n["porcentaje"] / 100) for n in notas)  # Suma cada nota multiplicada por su peso porcentual
 
 
 def modificar_estudiante(codigo):
@@ -104,7 +143,7 @@ def modificar_estudiante(codigo):
 
     datos = registro[codigo]  # Referencia directa al dict del estudiante para acceder y modificar sus campos fácilmente
 
-    print(f"\n--- Modificar: {datos['nombre']} | Curso: {datos['curso']} | Notas: {datos['notas']} ---")  # Muestra el estado actual para que el usuario sepa qué está por cambiar
+    print(f"\n--- Modificar: {datos['nombre']} | Curso: {datos['curso']} ---")
     print("1. Modificar nombre")
     print("2. Modificar curso")
     print("3. Modificar una nota")
@@ -116,45 +155,51 @@ def modificar_estudiante(codigo):
         return
 
     if opcion == 1:
-        nuevo_nombre = input("Nuevo nombre: ").strip()  # Se limpia el texto para evitar guardar espacios innecesarios
-        if not nuevo_nombre:  # Impide reemplazar el nombre actual por un valor vacío
+        nuevo_nombre = input("Nuevo nombre: ").strip()
+        if not nuevo_nombre:
             print("El nombre no puede estar vacío.")
             return
-        datos["nombre"] = nuevo_nombre  # Sobreescribe el nombre anterior con el nuevo valor validado
+        datos["nombre"] = nuevo_nombre
         print("Nombre actualizado con éxito.")
 
     elif opcion == 2:
-        nuevo_curso = input("Nuevo curso: ").strip()  # Se limpia igual que el nombre para mantener consistencia en los datos
-        if not nuevo_curso:  # Impide reemplazar el curso actual por un valor vacío
+        nuevo_curso = input("Nuevo curso: ").strip()
+        if not nuevo_curso:
             print("El curso no puede estar vacío.")
             return
-        datos["curso"] = nuevo_curso  # Actualiza el campo curso dentro del perfil del estudiante
+        datos["curso"] = nuevo_curso
         print("Curso actualizado con éxito.")
 
     elif opcion == 3:
-        notas = datos["notas"]  # Alias a la lista de notas para acceder a ella con mayor claridad
+        notas = datos["notas"]
 
-        if not notas:  # No tiene sentido modificar una nota si la lista está vacía
+        if not notas:
             print("Este estudiante no tiene notas registradas.")
             return
 
-        print(f"Notas actuales: {notas}")  # Muestra las notas con sus índices implícitos para que el usuario pueda elegir cuál modificar
+        for i, n in enumerate(notas):  # Muestra cada nota con su índice, valor y porcentaje para que el usuario elija
+            print(f"  [{i}] Nota: {n['valor']} | Porcentaje: {n['porcentaje']}%")
 
         try:
-            indice = int(input("Índice de la nota a modificar (desde 0): "))  # El índice determina la posición dentro de la lista de notas
-            nueva_nota = float(input("Nueva nota: "))  # Float para admitir valores decimales en la calificación
-        except ValueError:  # Captura cualquier entrada no convertible a número en alguno de los dos campos
+            indice = int(input("Índice de la nota a modificar: "))
+            nueva_nota = float(input("Nuevo valor de la nota: "))
+            nuevo_porcentaje = float(input("Nuevo porcentaje: "))
+        except ValueError:
             print("Entrada inválida.")
             return
 
-        if 0 <= indice < len(notas) and 0 <= nueva_nota <= 5:  # Valida simultáneamente que el índice exista en la lista y que la nota sea válida
-            notas[indice] = nueva_nota  # Reemplaza la nota en la posición indicada por el nuevo valor
+        # Calcula el porcentaje disponible excluyendo la nota que se va a reemplazar
+        porcentaje_sin_esta = sum(n["porcentaje"] for i2, n in enumerate(notas) if i2 != indice)
+        porcentaje_disponible = 100 - porcentaje_sin_esta
+
+        if 0 <= indice < len(notas) and 0 <= nueva_nota <= 5 and 0 < nuevo_porcentaje <= porcentaje_disponible:
+            notas[indice] = {"valor": nueva_nota, "porcentaje": nuevo_porcentaje}
             print("Nota modificada con éxito.")
         else:
-            print("Índice o nota fuera de rango.")  # Cubre dos casos de error: índice inexistente o nota fuera del rango 0-5
+            print(f"Datos inválidos. La nota debe estar entre 0-5 y el porcentaje entre 1 y {porcentaje_disponible}%.")
 
     else:
-        print("Opción no válida.")  # El usuario ingresó un número que no corresponde a ninguna de las tres opciones del submenú
+        print("Opción no válida.")
 
 
 def dar_de_baja(codigo):
@@ -167,23 +212,23 @@ def dar_de_baja(codigo):
     Returns:
         None
     """
-    if codigo not in registro:  # Verifica que el código corresponda a un estudiante antes de intentar eliminarlo
+    if codigo not in registro:
         print("Estudiante no encontrado.")
         return
 
-    nombre = registro[codigo]["nombre"]  # Guarda el nombre antes de eliminar para poder mostrarlo en el mensaje de confirmación
-    confirmacion = input(f"¿Estás seguro de dar de baja a {nombre}? (s/n): ").strip().lower()  # Solicita confirmación explícita para evitar eliminaciones accidentales
+    nombre = registro[codigo]["nombre"]
+    confirmacion = input(f"¿Estás seguro de dar de baja a {nombre}? (s/n): ").strip().lower()
 
-    if confirmacion == "s":  # Solo procede si el usuario escribe exactamente "s" para confirmar
-        del registro[codigo]  # Elimina completamente la entrada del diccionario usando el código como clave
+    if confirmacion == "s":
+        del registro[codigo]
         print(f"Estudiante {nombre} dado de baja con éxito.")
     else:
-        print("Operación cancelada.")  # Cualquier respuesta distinta de "s" cancela la eliminación de forma segura
+        print("Operación cancelada.")
 
 
 def obtener_promedio(codigo):
     """
-    Calcula y muestra el promedio de notas de un estudiante.
+    Calcula y muestra el promedio ponderado de notas de un estudiante.
 
     Args:
         codigo (int): Código del estudiante.
@@ -191,91 +236,122 @@ def obtener_promedio(codigo):
     Returns:
         None
     """
-    if codigo not in registro:  # Previene el cálculo sobre un estudiante que no existe en el sistema
+    if codigo not in registro:
         print("Estudiante no encontrado.")
         return
 
-    notas = registro[codigo]["notas"]  # Extrae únicamente la lista de calificaciones del estudiante
+    notas = registro[codigo]["notas"]
 
-    if not notas:  # Evita división por cero al intentar calcular el promedio de una lista vacía
+    if not notas:
         print("Este estudiante no tiene notas registradas.")
         return
 
-    promedio = sum(notas) / len(notas)  # Calcula la media aritmética dividiendo la suma total entre la cantidad de notas
-    estado = "Aprobado ✓" if promedio >= 3.0 else "Reprobado ✗"  # Determina el estado académico usando 3.0 como umbral mínimo de aprobación
-    print(f"Promedio de {registro[codigo]['nombre']}: {promedio:.2f} — {estado}")  # :.2f limita la presentación del promedio a dos decimales
+    promedio = calcular_promedio_ponderado(notas)
+    porcentaje_total = sum(n["porcentaje"] for n in notas)  # Muestra qué tanto del 100% se ha evaluado ya
+    estado = "Aprobado ✓" if promedio >= 3.0 else "Reprobado ✗"
+    print(f"Promedio ponderado de {registro[codigo]['nombre']}: {promedio:.2f} — {estado} (sobre {porcentaje_total}% evaluado)")
 
 
 def ver_estudiantes():
     """
     Muestra todos los estudiantes registrados con sus datos y estado académico.
 
-    Imprime:
-    - Código
-    - Nombre
-    - Curso
-    - Lista de notas
-    - Promedio y estado (Aprobado/Reprobado/Sin notas)
-
     Returns:
         None
     """
-    if not registro:  # Evita recorrer un diccionario vacío e informa al usuario que aún no hay datos
+    if not registro:
         print("No hay estudiantes registrados.")
         return
 
     print("\n--- Lista de todos los estudiantes ---")
 
-    for codigo, datos in registro.items():  # Itera sobre cada par clave-valor del diccionario para listar a todos los estudiantes
-        notas = datos["notas"]  # Accede directamente a la lista de notas del estudiante actual en la iteración
+    for codigo, datos in registro.items():
+        notas = datos["notas"]
 
-        if notas:  # Solo calcula promedio si el estudiante tiene al menos una nota registrada
-            promedio = sum(notas) / len(notas)  # Media aritmética de las calificaciones del estudiante
-            estado = f"Promedio: {promedio:.2f} — {'Aprobado ✓' if promedio >= 3.0 else 'Reprobado ✗'}"  # Construye el texto de estado con el promedio formateado y la etiqueta de aprobación
+        if notas:
+            promedio = calcular_promedio_ponderado(notas)
+            porcentaje_total = sum(n["porcentaje"] for n in notas)
+            estado = f"Promedio: {promedio:.2f} — {'Aprobado ✓' if promedio >= 3.0 else 'Reprobado ✗'} (sobre {porcentaje_total}% evaluado)"
         else:
-            estado = "Sin notas"  # Texto alternativo para estudiantes que todavía no tienen calificaciones
+            estado = "Sin notas"
 
         print(
             f"Código: {codigo} | "
             f"Nombre: {datos['nombre']} | "
             f"Curso: {datos['curso']} | "
-            f"Notas: {notas} | "
-            f"{estado}"  # Imprime toda la información del estudiante en una sola línea separada por pipes para facilitar la lectura
+            f"{estado}"
         )
 
 
 def ver_reprobados():
     """
-    Lista todos los estudiantes con promedio inferior a 3.0.
+    Lista todos los estudiantes con promedio ponderado inferior a 3.0.
 
     Solo muestra estudiantes que tienen al menos una nota registrada.
 
     Returns:
         None
     """
-    if not registro:  # Verifica que haya datos antes de filtrar para evitar operar sobre un sistema vacío
+    if not registro:
         print("No hay estudiantes registrados.")
         return
 
     reprobados = [
         (codigo, datos)
-        for codigo, datos in registro.items()  # Recorre todos los estudiantes del registro para evaluarlos
-        if datos["notas"] and sum(datos["notas"]) / len(datos["notas"]) < 3.0  # Excluye a quienes no tienen notas y filtra los que no alcanzan el umbral de aprobación
+        for codigo, datos in registro.items()
+        if datos["notas"] and calcular_promedio_ponderado(datos["notas"]) < 3.0
     ]
 
-    if not reprobados:  # Si la lista queda vacía, todos los estudiantes con notas están aprobados
+    if not reprobados:
         print("No hay estudiantes reprobados.")
         return
 
-    print(f"\n--- Estudiantes reprobados ({len(reprobados)}) ---")  # Encabezado con el total de reprobados para una lectura rápida
+    print(f"\n--- Estudiantes reprobados ({len(reprobados)}) ---")
 
-    for codigo, datos in reprobados:  # Itera exclusivamente sobre los estudiantes que no alcanzaron el promedio mínimo
-        promedio = sum(datos["notas"]) / len(datos["notas"])  # Recalcula el promedio aquí para mostrarlo en el reporte
+    for codigo, datos in reprobados:
+        promedio = calcular_promedio_ponderado(datos["notas"])
         print(
             f"Código: {codigo} | "
             f"Nombre: {datos['nombre']} | "
             f"Curso: {datos['curso']} | "
-            f"Promedio: {promedio:.2f}"  # Muestra el promedio con dos decimales para identificar qué tan lejos está del mínimo
+            f"Promedio: {promedio:.2f}"
+        )
+
+
+def ver_aprobados():
+    """
+    Lista todos los estudiantes con promedio ponderado igual o superior a 3.0.
+
+    Solo muestra estudiantes que tienen al menos una nota registrada.
+
+    Returns:
+        None
+    """
+    if not registro:  # Verifica que haya datos antes de filtrar
+        print("No hay estudiantes registrados.")
+        return
+
+    aprobados = [
+        (codigo, datos)
+        for codigo, datos in registro.items()
+        if datos["notas"] and calcular_promedio_ponderado(datos["notas"]) >= 3.0  # Filtra solo los que superan el umbral mínimo
+    ]
+
+    if not aprobados:  # Si la lista queda vacía, ningún estudiante con notas ha aprobado
+        print("No hay estudiantes aprobados.")
+        return
+
+    print(f"\n--- Estudiantes aprobados ({len(aprobados)}) ---")
+
+    for codigo, datos in aprobados:
+        promedio = calcular_promedio_ponderado(datos["notas"])
+        porcentaje_total = sum(n["porcentaje"] for n in datos["notas"])
+        print(
+            f"Código: {codigo} | "
+            f"Nombre: {datos['nombre']} | "
+            f"Curso: {datos['curso']} | "
+            f"Promedio: {promedio:.2f} | "
+            f"Evaluado: {porcentaje_total}%"
         )
 
 
@@ -287,60 +363,57 @@ def ver_cursos():
     Returns:
         None
     """
-    if not registro:  # Impide ejecutar la función si aún no hay estudiantes que proporcionen datos de cursos
+    if not registro:
         print("No hay estudiantes registrados.")
         return
 
     cursos = {}  # Diccionario auxiliar donde cada clave es el nombre del curso y su valor es el conteo de estudiantes
 
-    for datos in registro.values():  # Solo se necesitan los valores del registro, no las claves (códigos)
-        curso = datos["curso"]  # Extrae el nombre del curso del estudiante actual
-        cursos[curso] = cursos.get(curso, 0) + 1  # Incrementa el contador del curso si ya existe, o lo inicializa en 1 si es nuevo
+    for datos in registro.values():
+        curso = datos["curso"]
+        cursos[curso] = cursos.get(curso, 0) + 1
 
-    print(f"\n--- Cursos registrados ({len(cursos)}) ---")  # Muestra cuántos cursos distintos hay en el sistema
+    print(f"\n--- Cursos registrados ({len(cursos)}) ---")
 
-    for curso, cantidad in sorted(cursos.items()):  # sorted() ordena los cursos alfabéticamente para facilitar la lectura
-        print(f"  {curso}: {cantidad} estudiante(s)")  # Muestra el nombre del curso y cuántos estudiantes están inscritos en él
+    for curso, cantidad in sorted(cursos.items()):
+        print(f"  {curso}: {cantidad} estudiante(s)")
 
 
 def filtrar_por_curso():
     """
     Muestra todos los estudiantes que pertenecen a un curso específico.
 
-    Solicita el nombre del curso y lista los estudiantes encontrados
-    con su código, notas y promedio.
-
     Returns:
         None
     """
-    if not registro:  # Verifica que haya estudiantes registrados antes de intentar cualquier filtrado
+    if not registro:
         print("No hay estudiantes registrados.")
         return
 
-    curso_buscado = input("Nombre del curso a buscar: ").strip()  # Se limpia la entrada para evitar falsos negativos por espacios
+    curso_buscado = input("Nombre del curso a buscar: ").strip()
 
     encontrados = [
         (codigo, datos)
-        for codigo, datos in registro.items()  # Recorre todos los estudiantes para comparar su curso
-        if datos["curso"].lower() == curso_buscado.lower()  # Comparación insensible a mayúsculas para mayor tolerancia en la búsqueda
+        for codigo, datos in registro.items()
+        if datos["curso"].lower() == curso_buscado.lower()
     ]
 
-    if not encontrados:  # Si ningún estudiante coincide con el curso ingresado, se informa y se sale
+    if not encontrados:
         print(f"No se encontraron estudiantes en el curso '{curso_buscado}'.")
         return
 
-    print(f"\n--- Estudiantes del curso '{curso_buscado}' ({len(encontrados)}) ---")  # Encabezado con el nombre del curso y la cantidad de coincidencias
+    print(f"\n--- Estudiantes del curso '{curso_buscado}' ({len(encontrados)}) ---")
 
-    for codigo, datos in encontrados:  # Itera solo sobre los estudiantes del curso filtrado
-        notas = datos["notas"]  # Accede a las calificaciones del estudiante para calcular su estado
+    for codigo, datos in encontrados:
+        notas = datos["notas"]
 
-        if notas:  # Calcula promedio solo si el estudiante tiene notas, evitando división por cero
-            promedio = sum(notas) / len(notas)  # Media aritmética de las calificaciones
-            estado = f"Promedio: {promedio:.2f} — {'Aprobado ✓' if promedio >= 3.0 else 'Reprobado ✗'}"  # Determina el estado académico con base en el umbral de 3.0
+        if notas:
+            promedio = calcular_promedio_ponderado(notas)
+            estado = f"Promedio: {promedio:.2f} — {'Aprobado ✓' if promedio >= 3.0 else 'Reprobado ✗'}"
         else:
-            estado = "Sin notas"  # Etiqueta para estudiantes del curso que aún no tienen calificaciones registradas
+            estado = "Sin notas"
 
-        print(f"  Código: {codigo} | Nombre: {datos['nombre']} | Notas: {notas} | {estado}")  # Presenta la información del estudiante en formato compacto de una línea
+        print(f"  Código: {codigo} | Nombre: {datos['nombre']} | {estado}")
 
 
 def buscar_por_nombre():
@@ -352,32 +425,32 @@ def buscar_por_nombre():
     Returns:
         None
     """
-    if not registro:  # Evita realizar una búsqueda sobre un sistema sin estudiantes registrados
+    if not registro:
         print("No hay estudiantes registrados.")
         return
 
-    nombre_buscado = input("Nombre del estudiante a buscar: ").strip().lower()  # Se normaliza a minúsculas para hacer la búsqueda insensible a mayúsculas
+    nombre_buscado = input("Nombre del estudiante a buscar: ").strip().lower()
 
     encontrados = [
         (codigo, datos)
-        for codigo, datos in registro.items()  # Evalúa cada estudiante del sistema
-        if nombre_buscado in datos["nombre"].lower()  # Búsqueda parcial: encuentra coincidencias aunque el usuario ingrese solo parte del nombre
+        for codigo, datos in registro.items()
+        if nombre_buscado in datos["nombre"].lower()
     ]
 
-    if not encontrados:  # Informa si la búsqueda no produjo ningún resultado
+    if not encontrados:
         print("No se encontró ningún estudiante con ese nombre.")
         return
 
-    print(f"\n--- Resultados ({len(encontrados)}) ---")  # Encabezado con la cantidad de coincidencias encontradas
+    print(f"\n--- Resultados ({len(encontrados)}) ---")
 
-    for codigo, datos in encontrados:  # Recorre los resultados para mostrar la información de cada estudiante encontrado
-        notas = datos["notas"]  # Extrae las notas para calcular el promedio o mostrar que no hay
-        promedio = f"{sum(notas) / len(notas):.2f}" if notas else "Sin notas"  # Expresión condicional: formatea el promedio si hay notas, o indica ausencia de ellas
+    for codigo, datos in encontrados:
+        notas = datos["notas"]
+        promedio = f"{calcular_promedio_ponderado(notas):.2f}" if notas else "Sin notas"
         print(
             f"  Código: {codigo} | "
             f"Nombre: {datos['nombre']} | "
             f"Curso: {datos['curso']} | "
-            f"Promedio: {promedio}"  # Muestra los datos clave del estudiante encontrado en una sola línea
+            f"Promedio: {promedio}"
         )
 
 
@@ -391,10 +464,11 @@ def pedir_codigo():
         int | None: Código ingresado o None si es inválido.
     """
     try:
-        return int(input("Código del estudiante: "))  # Convierte directamente la entrada a entero para que sea compatible con las claves del diccionario
-    except ValueError:  # Si el usuario escribe algo no numérico, retorna None para que la función llamante pueda manejarlo
+        return int(input("Código del estudiante: "))
+    except ValueError:
         print("El código solo puede contener números.")
-        return None  # None actúa como señal de error para que el menú principal evite ejecutar la operación solicitada
+        return None
+
 
 def main():
     # Bucle principal del menú, se ejecuta indefinidamente hasta que el usuario elija salir
@@ -407,51 +481,55 @@ def main():
         print("5.  Ver promedio de un estudiante")
         print("6.  Ver todos los estudiantes")
         print("7.  Ver estudiantes reprobados")
-        print("8.  Ver cursos registrados")
-        print("9.  Filtrar estudiantes por curso")
-        print("10. Buscar estudiante por nombre")
-        print("11. Salir")
+        print("8.  Ver estudiantes aprobados")
+        print("9.  Ver cursos registrados")
+        print("10. Filtrar estudiantes por curso")
+        print("11. Buscar estudiante por nombre")
+        print("12. Salir")
 
         try:
-            seleccion = int(input("Opción: "))  # Convierte la entrada del usuario en entero para compararlo con las opciones del menú
-        except ValueError:  # Captura entradas no numéricas para evitar que el programa se interrumpa con un error no controlado
+            seleccion = int(input("Opción: "))
+        except ValueError:
             print("Por favor ingresa un número válido.")
-            continue  # Vuelve al inicio del bucle sin ejecutar ninguna operación
+            continue
 
-        match seleccion:  # Evalúa el valor de seleccion y ejecuta el bloque del caso que coincida
+        match seleccion:
             case 1:
-                registrar_estudiante()  # Inicia el flujo de captura y validación de datos para un nuevo estudiante
+                registrar_estudiante()
             case 2:
-                codigo = pedir_codigo()  # Solicita el código antes de llamar a la función para reutilizar la lógica de validación
-                if codigo is not None:  # Solo procede si pedir_codigo() devolvió un entero válido
+                codigo = pedir_codigo()
+                if codigo is not None:
                     subir_nota(codigo)
             case 3:
-                codigo = pedir_codigo()  # Reutiliza pedir_codigo() para mantener consistencia en la forma de obtener el identificador
-                if codigo is not None:  # Previene llamar a modificar_estudiante() con un código inválido
+                codigo = pedir_codigo()
+                if codigo is not None:
                     modificar_estudiante(codigo)
             case 4:
-                codigo = pedir_codigo()  # El código es necesario para localizar al estudiante que se desea eliminar
-                if codigo is not None:  # Solo invoca la baja si se obtuvo un código numérico válido
+                codigo = pedir_codigo()
+                if codigo is not None:
                     dar_de_baja(codigo)
             case 5:
-                codigo = pedir_codigo()  # Requiere identificar al estudiante antes de calcular su promedio
-                if codigo is not None:  # Evita pasar None a obtener_promedio(), lo que causaría un comportamiento inesperado
+                codigo = pedir_codigo()
+                if codigo is not None:
                     obtener_promedio(codigo)
             case 6:
-                ver_estudiantes()  # No requiere código porque opera sobre todos los estudiantes del registro
+                ver_estudiantes()
             case 7:
-                ver_reprobados()  # Filtra internamente sin necesitar input del usuario
+                ver_reprobados()
             case 8:
-                ver_cursos()  # Genera el resumen de cursos a partir de los datos actuales del registro
+                ver_aprobados()
             case 9:
-                filtrar_por_curso()  # Solicita internamente el nombre del curso a filtrar
+                ver_cursos()
             case 10:
-                buscar_por_nombre()  # Solicita internamente el nombre a buscar y permite coincidencias parciales
+                filtrar_por_curso()
             case 11:
+                buscar_por_nombre()
+            case 12:
                 print("¡Hasta luego!")
-                break  # Termina el bucle while y finaliza la ejecución del programa
+                break
             case _:
-                print("Opción no válida, intenta de nuevo.")  # El guion bajo actúa como comodín que captura cualquier valor no contemplado en los casos anteriores
+                print("Opción no válida, intenta de nuevo.")
+
 
 if __name__ == "__main__":
-    main()  # Punto de entrada: garantiza que main() solo se ejecute cuando el archivo se corre directamente, no al importarlo
+    main()
